@@ -7,5 +7,5 @@ data class DriverUIModel (
     val avatar: Bitmap,
     val name: String,
     val surname: String,
-    val distance: Double
+    val distance: String
 )

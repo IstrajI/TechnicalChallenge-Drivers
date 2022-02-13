@@ -1,5 +1,7 @@
 package com.heetch.technicaltest.features
 
+import android.location.Location
+import com.heetch.technicaltest.location.LocationManager
 import com.heetch.technicaltest.network.CoordinatesBody
 import com.heetch.technicaltest.network.DriverRemoteModel
 import com.heetch.technicaltest.network.NetworkManager
@@ -12,10 +14,14 @@ import io.reactivex.schedulers.Schedulers
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class DriversListPresenter(private val driversListView: DriverListView) {
-    private var networkManager: NetworkManager = NetworkManager.newInstance()
+class DriversListPresenter(
+    private val driversListView: DriverListView,
+    private val locationManager: LocationManager,
+    private val networkManager: NetworkManager
+) {
     val compositeDisposable = CompositeDisposable()
     private val rxPicasso = RxPicasso()
+    private var lastUserLocation: Location? = null
 
     companion object {
         const val DRIVERS_REFRESH_INTERVAL = 5L
@@ -48,6 +54,7 @@ class DriversListPresenter(private val driversListView: DriverListView) {
             }
             .observeOn(Schedulers.io())
             .flatMap { userLocation ->
+                lastUserLocation = userLocation
                 networkManager.getRepository()
                     .loadDrivers(CoordinatesBody(userLocation.latitude, userLocation.longitude))
                     .toObservable()
@@ -65,12 +72,33 @@ class DriversListPresenter(private val driversListView: DriverListView) {
             .flatMap({ driver ->
                 rxPicasso.loadImage(NetworkManager.BASE_SHORTEN_URL + driver.image)
             }, { driver, imageBitmap ->
-                DriverUIModel(driver.id, imageBitmap, driver.firstname, driver.lastname, 4.0)
+                val driverLocation = Location("").apply {
+                    latitude = driver.coordinates.latitude
+                    longitude = driver.coordinates.longitude
+                }
+
+                val distanceBetweenUser = lastUserLocation?.let {
+                    locationManager.getDistance(
+                        lastUserLocation!!,
+                        driverLocation
+                    )
+                } ?: -1F
+
+                val distanceBetweenUserInKm = String.format("%.1f",distanceBetweenUser / 1000)
+
+                DriverUIModel(
+                    driver.id,
+                    imageBitmap,
+                    driver.firstname,
+                    driver.lastname,
+                    distanceBetweenUserInKm
+                )
             })
             .toList()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { drivers ->
+                drivers.sortBy { it.distance }
                 driversListView.setDrivers(drivers)
             }.addToDisposable(compositeDisposable)
     }

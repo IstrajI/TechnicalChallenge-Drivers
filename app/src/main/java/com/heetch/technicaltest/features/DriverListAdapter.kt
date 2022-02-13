@@ -21,7 +21,7 @@ class DriverListAdapter: ListAdapter<DriverUIModel, DriverListAdapter.DriverView
 
         view.driver_avatar.setImageBitmap(item.avatar)
         view.driver_name.text = "${item.name} ${item.surname}"
-        view.driver_distance.text = item.distance.toString()
+        view.driver_distance.text = item.distance
     }
 
     class DriverViewHolder(view: View): RecyclerView.ViewHolder(view)

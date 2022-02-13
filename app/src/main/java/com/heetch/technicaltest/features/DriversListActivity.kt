@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.heetch.technicaltest.DriversApplication
 import com.heetch.technicaltest.R
 import com.jakewharton.rxbinding3.view.clicks
 import com.tbruyelle.rxpermissions2.RxPermissions
@@ -39,7 +40,8 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
         driversAdapter = DriverListAdapter()
         drivers_list.adapter = driversAdapter
 
-        driversListPresenter = DriversListPresenter(this)
+        val application = application as DriversApplication
+        driversListPresenter = DriversListPresenter(this, application.locationManager, application.networkManager)
         driversListPresenter.checkLocationPermissions()
     }
 
