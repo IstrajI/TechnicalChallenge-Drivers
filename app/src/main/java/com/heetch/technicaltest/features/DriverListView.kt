@@ -8,7 +8,7 @@ interface DriverListView {
     fun playClick(): Observable<Unit>
     fun checkPermissions(): Observable<Boolean>
     fun getUserLocation(): Observable<Location>
-    fun setDrivers(drivers: List<DriverRemoteModel>)
+    fun setDrivers(drivers: List<DriverUIModel>)
     fun showPermissionsDeniedDialog()
     fun isGPSEnabled(): Boolean
     fun showNoGPSDialog()

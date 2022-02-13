@@ -7,5 +7,5 @@ import retrofit2.http.PUT
 interface ApiInterface {
 
     @PUT("coordinates")
-    fun getCoordinates(@Body coordinatesBody: CoordinatesBody): Single<List<DriverRemoteModel>>
+    fun loadDrivers(@Body coordinatesBody: CoordinatesBody): Single<List<DriverRemoteModel>>
 }

@@ -16,6 +16,7 @@ class NetworkManager {
     companion object {
         var instance: NetworkManager? = null
         const val BASE_URL = "http://hiring.heetch.com/mobile/"
+        const val BASE_SHORTEN_URL = "http://hiring.heetch.com"
 
         fun newInstance(): NetworkManager {
             return instance?:NetworkManager().also {

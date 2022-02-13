@@ -7,8 +7,8 @@ import android.location.Location
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.heetch.technicaltest.R
-import com.heetch.technicaltest.network.DriverRemoteModel
 import com.jakewharton.rxbinding3.view.clicks
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
@@ -28,14 +28,19 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
         )
 
     private lateinit var driversListPresenter: DriversListPresenter
+    private lateinit var driversAdapter: DriverListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drivers)
         setSupportActionBar(drivers_toolbar)
 
+        drivers_list.layoutManager = LinearLayoutManager(this)
+        driversAdapter = DriverListAdapter()
+        drivers_list.adapter = driversAdapter
+
         driversListPresenter = DriversListPresenter(this)
-        driversListPresenter.subscribeToFabClick()
+        driversListPresenter.checkLocationPermissions()
     }
 
     override fun onDestroy() {
@@ -56,8 +61,8 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
         return drivers_fab.clicks()
     }
 
-    override fun setDrivers(drivers: List<DriverRemoteModel>) {
-
+    override fun setDrivers(drivers: List<DriverUIModel>) {
+        driversAdapter.submitList(drivers)
     }
 
     override fun showPermissionsDeniedDialog() {
