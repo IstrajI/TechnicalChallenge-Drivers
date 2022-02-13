@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">@color/rose</color>
+    <color name="colorPrimaryDark">@color/ruby</color>
+    <color name="colorAccent">@color/tolopea</color>
+</resources>

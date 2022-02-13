@@ -23,6 +23,18 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    flavorDimensions "drivers"
+    productFlavors {
+        base {
+            dimension "drivers"
+            applicationIdSuffix ".base"
+        }
+        premium {
+            dimension "drivers"
+            applicationIdSuffix ".premium"
+        }
+    }
 }
 
 dependencies {
