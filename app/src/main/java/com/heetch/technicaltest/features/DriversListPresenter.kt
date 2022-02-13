@@ -6,6 +6,7 @@ import com.heetch.technicaltest.util.addToDisposable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 class DriversListPresenter(private val driversListView: DriverListView) {
     var networkManager: NetworkManager = NetworkManager.newInstance()
@@ -30,6 +31,7 @@ class DriversListPresenter(private val driversListView: DriverListView) {
 
     private fun loadUserLocation() {
         driversListView.getUserLocation()
+            .repeatWhen { observable -> observable.delay(5, TimeUnit.SECONDS) }
             .observeOn(Schedulers.io())
             .flatMap { location ->
                 networkManager.getRepository()
