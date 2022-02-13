@@ -14,7 +14,14 @@ import java.util.concurrent.TimeUnit
 class NetworkManager {
 
     companion object {
+        var instance: NetworkManager? = null
         const val BASE_URL = "http://hiring.heetch.com/mobile/"
+
+        fun newInstance(): NetworkManager {
+            return instance?:NetworkManager().also {
+                instance = it
+            }
+        }
     }
 
     fun getRepository() : ApiInterface {
