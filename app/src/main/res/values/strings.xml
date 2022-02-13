@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Heetch Tech Test</string>
+    <string name="app_name">Drivers Go: Catch them all!</string>
     <string name="action_settings">Settings</string>
     <string name="drivers_list_no_gps_message">GPS is needed to load nearest drivers</string>
     <string name="drivers_list_distance_title">distance %skm</string>
