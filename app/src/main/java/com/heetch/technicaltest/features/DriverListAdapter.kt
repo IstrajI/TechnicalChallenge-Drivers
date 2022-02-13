@@ -10,8 +10,10 @@ import com.heetch.technicaltest.R
 import kotlinx.android.synthetic.main.item_driver.view.*
 
 class DriverListAdapter: ListAdapter<DriverUIModel, DriverListAdapter.DriverViewHolder>(DiffCallback()) {
+    lateinit var distanceTitle: String
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DriverViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_driver, parent, false)
+        distanceTitle = parent.context.getString(R.string.drivers_list_distance_title)
         return DriverViewHolder(view)
     }
 
@@ -21,7 +23,7 @@ class DriverListAdapter: ListAdapter<DriverUIModel, DriverListAdapter.DriverView
 
         view.driver_avatar.setImageBitmap(item.avatar)
         view.driver_name.text = "${item.name} ${item.surname}"
-        view.driver_distance.text = item.distance
+        view.driver_distance.text = String.format(distanceTitle, item.distance)
     }
 
     class DriverViewHolder(view: View): RecyclerView.ViewHolder(view)
