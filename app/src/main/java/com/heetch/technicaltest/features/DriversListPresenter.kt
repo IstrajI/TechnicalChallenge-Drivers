@@ -1,5 +1,6 @@
 package com.heetch.technicaltest.features
 
+import android.annotation.SuppressLint
 import android.location.Location
 import com.heetch.technicaltest.location.LocationManager
 import com.heetch.technicaltest.network.CoordinatesBody
@@ -22,13 +23,23 @@ class DriversListPresenter(
     val compositeDisposable = CompositeDisposable()
     private val rxPicasso = RxPicasso()
     private var lastUserLocation: Location? = null
+    private var isPlaying: Boolean = false
 
     companion object {
         const val DRIVERS_REFRESH_INTERVAL = 5L
     }
 
-    fun checkLocationPermissions() {
+    @SuppressLint("CheckResult")
+    fun subscribeToDriversUpdates() {
         driversListView.playClick()
+            .doOnNext {
+                isPlaying = !isPlaying
+                if (isPlaying) {
+                    driversListView.showPauseSwitch()
+                } else {
+                    driversListView.showPlaySwitch()
+                }
+            }
             .flatMap {
                 driversListView.checkPermissions()
             }.subscribe { isPermissionsGranted ->
@@ -41,16 +52,20 @@ class DriversListPresenter(
                 } else {
                     driversListView.showPermissionsDeniedDialog()
                 }
-            }.addToDisposable(compositeDisposable)
+            }
     }
 
     private fun loadNearestDrivers() {
-        driversListView.getUserLocation()
+        Observable.just("")
+            .takeWhile { isPlaying }
             .repeatWhen { observable ->
                 observable.delay(
                     DRIVERS_REFRESH_INTERVAL,
                     TimeUnit.SECONDS
                 )
+            }
+            .flatMap {
+                driversListView.getUserLocation()
             }
             .observeOn(Schedulers.io())
             .flatMap { userLocation ->
@@ -84,7 +99,7 @@ class DriversListPresenter(
                     )
                 } ?: -1F
 
-                val distanceBetweenUserInKm = String.format("%.1f",distanceBetweenUser / 1000)
+                val distanceBetweenUserInKm = String.format("%.1f", distanceBetweenUser / 1000)
 
                 DriverUIModel(
                     driver.id,

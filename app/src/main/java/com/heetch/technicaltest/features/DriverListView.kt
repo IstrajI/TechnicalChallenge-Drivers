@@ -12,4 +12,7 @@ interface DriverListView {
     fun showPermissionsDeniedDialog()
     fun isGPSEnabled(): Boolean
     fun showNoGPSDialog()
+
+    fun showPlaySwitch()
+    fun showPauseSwitch()
 }

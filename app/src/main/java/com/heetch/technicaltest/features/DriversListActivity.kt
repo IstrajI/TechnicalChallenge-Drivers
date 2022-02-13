@@ -42,7 +42,7 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
 
         val application = application as DriversApplication
         driversListPresenter = DriversListPresenter(this, application.locationManager, application.networkManager)
-        driversListPresenter.checkLocationPermissions()
+        driversListPresenter.subscribeToDriversUpdates()
     }
 
     override fun onDestroy() {
@@ -80,5 +80,13 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
     override fun showNoGPSDialog() {
         Toast.makeText(this, getString(R.string.drivers_list_no_gps_message), Toast.LENGTH_SHORT)
             .show()
+    }
+
+    override fun showPlaySwitch() {
+        drivers_fab.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_black_24dp))
+    }
+
+    override fun showPauseSwitch() {
+        drivers_fab.setImageDrawable(getDrawable(R.drawable.ic_pause_black_24dp))
     }
 }
