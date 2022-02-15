@@ -72,7 +72,11 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
     }
 
     override fun showPermissionsDeniedDialog() {
+        Toast.makeText(this, getString(R.string.drivers_list_no_gps_permission_message), Toast.LENGTH_SHORT).show()
+    }
 
+    override fun showNetworkErrorDialog(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun isGPSEnabled(): Boolean {

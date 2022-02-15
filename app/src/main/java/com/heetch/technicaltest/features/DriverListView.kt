@@ -6,11 +6,14 @@ import io.reactivex.Observable
 
 interface DriverListView {
     fun playClick(): Observable<Unit>
+
+    fun isGPSEnabled(): Boolean
     fun checkPermissions(): Observable<Boolean>
     fun getUserLocation(): Observable<Location>
     fun setDrivers(drivers: List<DriverUIModel>)
+
     fun showPermissionsDeniedDialog()
-    fun isGPSEnabled(): Boolean
+    fun showNetworkErrorDialog(message: String)
     fun showNoGPSDialog()
 
     fun showPlaySwitch()

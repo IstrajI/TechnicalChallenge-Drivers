@@ -59,7 +59,7 @@ class DriversListPresenter(
                 driversListView.showPlaySwitch()
                 compositeDisposable.clear()
             }
-        }.addToDisposable(compositeDisposable)
+        }
     }
 
     private fun loadCurrentLocation() {
@@ -79,12 +79,11 @@ class DriversListPresenter(
                 if (isPermissionsGranted) {
                     loadNearestDrivers()
                 } else {
+                    playButtonState.onNext(false)
                     driversListView.showPermissionsDeniedDialog()
                 }
             }, {
-
-            }, {
-
+                driversListView.showNetworkErrorDialog(it.localizedMessage)
             }).addToDisposable(compositeDisposable)
     }
 
@@ -103,9 +102,7 @@ class DriversListPresenter(
             .subscribe({ drivers ->
                 loadDriversAvatar(drivers)
             }, {
-
-            }, {
-
+                driversListView.showNetworkErrorDialog(it.localizedMessage)
             }).addToDisposable(compositeDisposable)
     }
 
@@ -143,6 +140,7 @@ class DriversListPresenter(
                 drivers.sortBy { it.distance }
                 driversList.onNext(drivers)
             }, {
+                driversListView.showNetworkErrorDialog(it.localizedMessage)
         }).addToDisposable(compositeDisposable)
         }
 }

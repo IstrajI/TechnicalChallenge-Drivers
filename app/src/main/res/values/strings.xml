@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Drivers Go: Catch them all!</string>
     <string name="action_settings">Settings</string>
-    <string name="drivers_list_no_gps_message">GPS is needed to load nearest drivers</string>
+    <string name="drivers_list_no_gps_message">turned on GPS is needed to load nearest drivers</string>
+    <string name="drivers_list_no_gps_permission_message">GPS permissions need to be accepted to load nearest drivers</string>
     <string name="drivers_list_distance_title">distance %skm</string>
 </resources>
