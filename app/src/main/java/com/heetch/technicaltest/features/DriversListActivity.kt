@@ -41,12 +41,16 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
         drivers_list.adapter = driversAdapter
 
         val application = application as DriversApplication
-        driversListPresenter = DriversListPresenter(this, application.locationManager, application.networkManager)
-        driversListPresenter.subscribeToDriversUpdates()
+        driversListPresenter = DriversListPresenter.newInstance(this, application.locationManager, application.networkManager)
+
+        driversListPresenter.subscribeToPlayButtonState()
+        driversListPresenter.driversList.subscribe {
+            setDrivers(it)
+        }
     }
 
     override fun onDestroy() {
-        driversListPresenter.compositeDisposable.dispose()
+        driversListPresenter.compositeDisposable.clear()
         super.onDestroy()
     }
 
