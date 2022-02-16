@@ -41,7 +41,11 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
         drivers_list.adapter = driversAdapter
 
         val application = application as DriversApplication
-        driversListPresenter = DriversListPresenter.newInstance(this, application.locationManager, application.networkManager)
+        driversListPresenter = DriversListPresenter.newInstance(
+            this,
+            application.locationManager,
+            application.networkManager
+        )
 
         driversListPresenter.subscribeToPlayButtonState()
         driversListPresenter.driversList.subscribe {
@@ -72,7 +76,11 @@ class DriversListActivity : AppCompatActivity(), DriverListView {
     }
 
     override fun showPermissionsDeniedDialog() {
-        Toast.makeText(this, getString(R.string.drivers_list_no_gps_permission_message), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            this,
+            getString(R.string.drivers_list_no_gps_permission_message),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun showNetworkErrorDialog(message: String) {

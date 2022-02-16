@@ -12,7 +12,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 class DriversListPresenter(
@@ -22,7 +21,6 @@ class DriversListPresenter(
 ) {
     val compositeDisposable = CompositeDisposable()
     private val rxPicasso = RxPicasso()
-    private var lastUserLocation: Location? = null
     var isPlaying: Boolean = false
     var playButtonState = BehaviorSubject.create<Boolean>().apply { onNext(isPlaying) }
     val driversList = BehaviorSubject.create<List<DriverUIModel>>()
@@ -31,9 +29,10 @@ class DriversListPresenter(
         const val DRIVERS_REFRESH_INTERVAL = 5L
 
         var instance: DriversListPresenter? = null
-        fun newInstance(driversListView: DriverListView,
-                        locationManager: LocationManager,
-                        networkManager: NetworkManager
+        fun newInstance(
+            driversListView: DriverListView,
+            locationManager: LocationManager,
+            networkManager: NetworkManager
         ): DriversListPresenter {
             if (instance != null) {
                 instance!!.driversListView = driversListView
@@ -54,7 +53,7 @@ class DriversListPresenter(
         playButtonState.subscribe {
             if (it) {
                 driversListView.showPauseSwitch()
-                loadCurrentLocation()
+                startLocationLoading()
             } else {
                 driversListView.showPlaySwitch()
                 compositeDisposable.clear()
@@ -62,85 +61,59 @@ class DriversListPresenter(
         }
     }
 
-    private fun loadCurrentLocation() {
-        Observable.just("")
-            .repeatWhen { observable ->
-                observable.delay(
-                    DRIVERS_REFRESH_INTERVAL,
-                    TimeUnit.SECONDS
-                )
-            }
+    private fun startLocationLoading() {
+        var currentLocation: Location? = null
+        Observable.interval(0, DRIVERS_REFRESH_INTERVAL, TimeUnit.SECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
             .flatMap { driversListView.checkPermissions() }
-            .subscribe ({ isPermissionsGranted ->
-                if (!driversListView.isGPSEnabled()) {
-                    driversListView.showNoGPSDialog()
-                    return@subscribe
-                }
-                if (isPermissionsGranted) {
-                    loadNearestDrivers()
-                } else {
-                    playButtonState.onNext(false)
-                    driversListView.showPermissionsDeniedDialog()
-                }
-            }, {
-                driversListView.showNetworkErrorDialog(it.localizedMessage)
-            }).addToDisposable(compositeDisposable)
-    }
-
-    private fun loadNearestDrivers() {
-        driversListView.getUserLocation()
+            .doOnNext { checkGPSErrors(it) }
+            .filter { it }
+            .flatMap { driversListView.getUserLocation() }
+            .doOnNext { currentLocation = it }
             .observeOn(Schedulers.io())
-            .flatMap { userLocation ->
-                lastUserLocation = userLocation
+            .flatMapSingle {
                 networkManager.getRepository()
-                    .loadDrivers(CoordinatesBody(userLocation.latitude, userLocation.longitude))
-                    .toObservable()
-
+                    .loadDrivers(CoordinatesBody(it.latitude, it.longitude))
             }
+            .flatMap { drivers -> createDriversUIModels(drivers, currentLocation!!) }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .subscribe({ drivers ->
-                loadDriversAvatar(drivers)
+            .subscribe({ uiDrivers ->
+                uiDrivers.sortBy { it.distance }
+                driversList.onNext(uiDrivers)
             }, {
                 driversListView.showNetworkErrorDialog(it.localizedMessage)
             }).addToDisposable(compositeDisposable)
     }
 
-    private fun loadDriversAvatar(drivers: List<DriverRemoteModel>) {
-        Observable.fromIterable(drivers)
-            .flatMap({ driver ->
+    private fun createDriversUIModels(drivers: List<DriverRemoteModel>, currentLocation: Location): Observable<MutableList<DriverUIModel>> {
+        return Observable.fromIterable(drivers)
+            .flatMap { driver ->
                 rxPicasso.loadImage(NetworkManager.BASE_SHORTEN_URL + driver.image)
-            }, { driver, imageBitmap ->
-                val driverLocation = Location("").apply {
-                    latitude = driver.coordinates.latitude
-                    longitude = driver.coordinates.longitude
-                }
-
-                val distanceBetweenUser = lastUserLocation?.let {
-                    locationManager.getDistance(
-                        lastUserLocation!!,
-                        driverLocation
-                    )
-                } ?: -1F
-
-                val distanceBetweenUserInKm = String.format("%.1f", distanceBetweenUser / 1000)
-
-                DriverUIModel(
-                    driver.id,
-                    imageBitmap,
-                    driver.firstname,
-                    driver.lastname,
-                    distanceBetweenUserInKm
-                )
-            })
+                    .map {
+                        DriverUIModel(driver.id, it, driver.firstname, driver.lastname,
+                            locationManager.getDistance(
+                                currentLocation!!,
+                                Location("").apply {
+                                    latitude = driver.coordinates.latitude
+                                    longitude = driver.coordinates.longitude
+                                }
+                            ).let { distance ->
+                                String.format("%.1f", distance / 1000)
+                            })
+                    }
+            }
             .toList()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe ({ drivers ->
-                drivers.sortBy { it.distance }
-                driversList.onNext(drivers)
-            }, {
-                driversListView.showNetworkErrorDialog(it.localizedMessage)
-        }).addToDisposable(compositeDisposable)
+            .toObservable()
+    }
+
+    private fun checkGPSErrors(isPermissionGranted: Boolean) {
+        if (!driversListView.isGPSEnabled()) {
+            driversListView.showNoGPSDialog()
         }
+
+        if (!isPermissionGranted) {
+            playButtonState.onNext(false)
+            driversListView.showPermissionsDeniedDialog()
+        }
+    }
 }
